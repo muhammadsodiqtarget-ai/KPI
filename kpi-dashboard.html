@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #09090f;
+  --bg2:    #0f0f1a;
+  --bg3:    #141422;
+  --bg4:    #1a1a2e;
+  --bg5:    #1f1f35;
+  --border: rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.10);
+  --border3:rgba(255,255,255,0.16);
+  --text:   #eeeef5;
+  --text2:  #8888aa;
+  --text3:  #50507a;
+  --accent: #7c6fff;
+  --accent2:#5a50d4;
+  --green:  #1fd98a;
+  --gbg:    rgba(31,217,138,.10);
+  --yellow: #f5c842;
+  --ybg:    rgba(245,200,66,.10);
+  --red:    #ff4f6e;
+  --rbg:    rgba(255,79,110,.10);
+  --blue:   #3da8ff;
+  --bbg:    rgba(61,168,255,.10);
+  --pink:   #ff6eb5;
+  --pbg:    rgba(255,110,181,.10);
+  --r: 10px; --rs: 7px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+#sb{width:215px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200}
+.sb-logo{padding:22px 18px 18px;border-bottom:1px solid var(--border)}
+.sb-logo-t{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.sb-logo-s{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.sb-nav{padding:6px;flex:1}
+.sb-sec{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:14px 12px 5px}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--rs);cursor:pointer;color:var(--text2);transition:all .15s;font-size:13.5px;border:none;background:none;width:100%;text-align:left}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.on{background:rgba(124,111,255,.13);color:var(--accent);font-weight:500}
+.nav-ico{font-size:15px;width:18px;text-align:center;opacity:.7}
+.nav-btn.on .nav-ico{opacity:1}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+
+/* ── MAIN ── */
+#main{margin-left:215px;flex:1;min-height:100vh}
+.page{display:none;padding:28px 32px;max-width:1240px;animation:fadeIn .2s ease}
+.page.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:16px;flex-wrap:wrap}
+.ph-title{font-size:21px;font-weight:600;letter-spacing:-.5px}
+.ph-sub{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* ── BTN ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:var(--accent2)}
+.btn-g{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}.btn-g:hover{background:var(--bg4);color:var(--text)}
+.btn-d{background:var(--rbg);color:var(--red);border:1px solid rgba(255,79,110,.18)}.btn-d:hover{background:rgba(255,79,110,.18)}
+.btn-s{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.card-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.card-val{font-size:26px;font-weight:600;letter-spacing:-1px;font-family:'DM Mono',monospace}
+.card-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:22px}
+
+/* ── TOTAL BAR ── */
+.tbar{background:linear-gradient(135deg,rgba(124,111,255,.07),rgba(31,217,138,.05));border:1px solid rgba(124,111,255,.18);border-radius:var(--r);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+.tbar-lbl{font-size:12px;color:var(--text2);margin-bottom:2px}
+.tbar-val{font-size:30px;font-weight:700;letter-spacing:-1.5px;font-family:'DM Mono',monospace}
+.tbar-meta{font-size:11px;color:var(--text3)}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:26px}
+.kc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.kc-head{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kc-name{font-size:14px;font-weight:600}
+.kc-earn{text-align:right}
+.kc-earn-v{font-size:20px;font-weight:600;font-family:'DM Mono',monospace}
+.kc-earn-s{font-size:11px;color:var(--text3);margin-top:1px}
+.kc-prog{padding:3px 18px 8px}
+.kc-prog-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px}
+.pbar{height:3px;background:var(--bg4);border-radius:99px;overflow:hidden}
+.pfill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.kc-rows{}
+.kc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-top:1px solid var(--border);font-size:12.5px;gap:8px}
+.kc-row-name{color:var(--text2);flex:1;min-width:0}
+.kc-row-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap}
+.mearn{font-size:11px;font-weight:500;padding:3px 8px;border-radius:5px;font-family:'DM Mono',monospace;white-space:nowrap}
+.mg{background:var(--gbg);color:var(--green)}
+.my{background:var(--ybg);color:var(--yellow)}
+.mr{background:var(--rbg);color:var(--red)}
+.mb{background:var(--bbg);color:var(--blue)}
+.mq{background:rgba(80,80,122,.15);color:var(--text3)}
+
+/* ── BADGE ── */
+.pb{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:11px;font-weight:500}
+.p-ig{background:var(--pbg);color:var(--pink)}
+.p-tg{background:var(--bbg);color:var(--blue)}
+
+/* ── TABLE ── */
+.tw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead tr{border-bottom:1px solid var(--border)}
+th{text-align:left;padding:11px 14px;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+td{padding:11px 14px;font-size:13px;color:var(--text2);border-top:1px solid var(--border)}
+tr:first-child td{border-top:none}
+tbody tr:hover td{background:var(--bg3)}
+.tdm{color:var(--text);font-weight:500}
+.tdn{font-family:'DM Mono',monospace;font-size:12px;text-align:right;color:var(--text)}
+.tda{display:flex;gap:6px;align-items:center}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.fsel{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);padding:7px 11px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.fsel:focus{outline:none;border-color:var(--accent);color:var(--text)}
+.fsel option{background:var(--bg2)}
+
+/* ── MODAL ── */
+.mover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.mover.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border3);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:mIn .18s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.mhead{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mtitle{font-size:15px;font-weight:600}
+.mclose{width:26px;height:26px;border-radius:7px;background:var(--bg3);border:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.mclose:hover{background:var(--bg4);color:var(--text)}
+.mbody{padding:22px}
+.mfoot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* ── FORM ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.ff{display:flex;flex-direction:column;gap:5px}
+.ff label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.ff input,.ff select,.ff textarea{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:9px 11px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;transition:border-color .15s;width:100%}
+.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--accent)}
+.ff input::placeholder{color:var(--text3)}
+.ff select option{background:var(--bg2)}
+.ff textarea{resize:vertical;min-height:60px}
+.ffc{grid-column:1/-1}
+.fmb{margin-bottom:12px}
+
+/* ── SECTION TITLE ── */
+.stitle{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;letter-spacing:-.1px}
+
+/* ── SETTINGS ── */
+.sgrp{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.sgrp-head{padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sgrp-title{font-size:13.5px;font-weight:600}
+.sth{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 70px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.sth-c{padding:9px 14px;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.7px}
+.srow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 70px;border-top:1px solid var(--border);align-items:center}
+.sc{padding:10px 14px;font-size:13px;color:var(--text2)}
+.sc input{width:80px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 8px;border-radius:5px;font-family:'DM Mono',monospace;font-size:12px}
+.sc input:focus{outline:none;border-color:var(--accent)}
+.sinline{display:none;background:var(--accent);color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.sinline:hover{background:var(--accent2)}
+
+/* ── CHART WRAP ── */
+.cw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:22px}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ctitle{font-size:13px;font-weight:600}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--border3);color:var(--text);padding:11px 16px;border-radius:var(--rs);font-size:13px;opacity:0;transform:translateY(6px);transition:all .22s;z-index:9999;pointer-events:none;max-width:280px}
+#toast.on{opacity:1;transform:none}
+#toast.s{border-left:3px solid var(--green)}
+#toast.e{border-left:3px solid var(--red)}
+
+/* ── LOADER ── */
+.ldr{display:flex;align-items:center;justify-content:center;padding:50px;color:var(--text3);gap:8px;font-size:13px}
+.spin{width:16px;height:16px;border:2px solid var(--bg5);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-i{font-size:28px;margin-bottom:10px}
+
+/* ── DIVIDER ── */
+.div{height:1px;background:var(--border);margin:18px 0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #sb{width:52px}
+  #sb .nav-btn span:not(.nav-ico){display:none}
+  #sb .sb-logo-t,#sb .sb-logo-s,#sb .sb-sec,#sb .sb-foot{display:none}
+  #main{margin-left:52px}
+  .page{padding:18px 14px}
+  .fg,.fg3{grid-template-columns:1fr}
+  .ffc{grid-column:1}
+  .sg{grid-template-columns:1fr 1fr}
+  .kpi-grid{grid-template-columns:1fr}
+  .sth,.srow{grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 60px}
+}
+
+.tr-g{color:var(--green)}.tr-y{color:var(--yellow)}.tr-r{color:var(--red)}.tr-b{color:var(--blue)}.tr-m{color:var(--text2)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-t">KPI Dashboard</div>
+    <div class="sb-logo-s">Analytics</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Asosiy</div>
+    <button class="nav-btn on" onclick="go('dash')"><span class="nav-ico">◈</span><span>Dashboard</span></button>
+    <button class="nav-btn" onclick="go('posts')"><span class="nav-ico">◧</span><span>Post Bazasi</span></button>
+    <div class="sb-sec">Boshqaruv</div>
+    <button class="nav-btn" onclick="go('kpi')"><span class="nav-ico">◉</span><span>KPI Sozlamalar</span></button>
+  </div>
+  <div class="sb-foot" id="sb-date"></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- ══ DASHBOARD ════════════════════════════════ -->
+<div id="page-dash" class="page on">
+  <div class="ph">
+    <div><div class="ph-title">Dashboard</div><div class="ph-sub">KPI natijalari va to'lovlar</div></div>
+    <input type="month" class="fsel" id="dash-month" onchange="renderDash()">
+  </div>
+  <div id="dash-body"></div>
+</div>
+
+<!-- ══ POSTS ════════════════════════════════════ -->
+<div id="page-posts" class="page">
+  <div class="ph">
+    <div><div class="ph-title">Post Bazasi</div><div class="ph-sub" id="posts-lbl">Yuklanmoqda...</div></div>
+    <button class="btn btn-p" onclick="openPost()">+ Post qo'shish</button>
+  </div>
+  <div class="filters">
+    <select class="fsel" id="fp-profile" onchange="renderPosts()">
+      <option value="">Barcha profillar</option>
+      <option value="bobur">Bobur Musaboyev</option>
+      <option value="insan">Insan</option>
+    </select>
+    <select class="fsel" id="fp-platform" onchange="renderPosts()">
+      <option value="">Barcha platformalar</option>
+      <option value="instagram">Instagram</option>
+      <option value="telegram">Telegram</option>
+    </select>
+    <input type="month" class="fsel" id="fp-month" onchange="renderPosts()">
+  </div>
+  <div id="posts-body"></div>
+</div>
+
+<!-- ══ KPI SETTINGS ══════════════════════════════ -->
+<div id="page-kpi" class="page">
+  <div class="ph">
+    <div><div class="ph-title">KPI Sozlamalar</div><div class="ph-sub">Minimalka, plan va summalarni o'zgartiring</div></div>
+  </div>
+  <div id="kpi-body"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- ══ POST MODAL ══════════════════════════════ -->
+<div class="mover" id="post-modal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="pm-title">Post qo'shish</div>
+      <button class="mclose" onclick="closePost()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fg fmb">
+        <div class="ff">
+          <label>Profil</label>
+          <select id="f-profile">
+            <option value="bobur">Bobur Musaboyev</option>
+            <option value="insan">Insan</option>
+          </select>
+        </div>
+        <div class="ff">
+          <label>Platforma</label>
+          <select id="f-platform">
+            <option value="instagram">Instagram</option>
+            <option value="telegram">Telegram</option>
+          </select>
+        </div>
+        <div class="ff">
+          <label>Sana</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="ff">
+          <label>Kontent turi</label>
+          <select id="f-type">
+            <option value="post">Post</option>
+            <option value="reels">Reels</option>
+            <option value="story">Story</option>
+            <option value="telegram_post">Telegram Post</option>
+          </select>
+        </div>
+        <div class="ff ffc">
+          <label>Post linki (ixtiyoriy)</label>
+          <input type="url" id="f-link" placeholder="https://...">
+        </div>
+      </div>
+      <div class="fg3 fmb">
+        <div class="ff"><label>Prosmotrlar</label><input type="number" id="f-views" value="0" min="0"></div>
+        <div class="ff"><label>Yangi obunachilar</label><input type="number" id="f-subs" value="0" min="0"></div>
+        <div class="ff"><label>PM soni</label><input type="number" id="f-pm" value="0" min="0"></div>
+        <div class="ff"><label>Reaksiya</label><input type="number" id="f-react" value="0" min="0"></div>
+        <div class="ff"><label>Chiqib ketganlar</label><input type="number" id="f-leave" value="0" min="0"></div>
+      </div>
+      <div class="ff">
+        <label>Izoh</label>
+        <textarea id="f-notes" placeholder="Qo'shimcha izoh..."></textarea>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closePost()">Bekor</button>
+      <button class="btn btn-p" id="pm-save" onclick="savePost()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// DATA STORE — localStorage
+// ════════════════════════════════════════════════
+const STORE = {
+  getPosts(){ try{ return JSON.parse(localStorage.getItem('kpi_posts')||'[]') }catch{ return [] } },
+  setPosts(d){ localStorage.setItem('kpi_posts', JSON.stringify(d)) },
+  getSettings(){ 
+    try{ 
+      const d = localStorage.getItem('kpi_settings')
+      return d ? JSON.parse(d) : null
+    }catch{ return null }
+  },
+  setSettings(d){ localStorage.setItem('kpi_settings', JSON.stringify(d)) }
+}
+
+// ════════════════════════════════════════════════
+// DEFAULT KPI SETTINGS
+// ════════════════════════════════════════════════
+const DEFAULT_SETTINGS = [
+  // Bobur — Instagram
+  {id:'s1', profile:'bobur', platform:'instagram', metric:'subscribers',    label:'Obunachi soni',    min:2000,    plan:4000,    linked:250, max:400, inv:false},
+  {id:'s2', profile:'bobur', platform:'instagram', metric:'pm_count',       label:'PM soni',          min:800000,  plan:2000000, linked:150, max:250, inv:false},
+  {id:'s3', profile:'bobur', platform:'instagram', metric:'story_activity', label:'Story aktivlik %', min:10,      plan:15,      linked:70,  max:200, inv:false},
+  {id:'s4', profile:'bobur', platform:'instagram', metric:'content_plan',   label:'Kontent plan %',   min:80,      plan:100,     linked:100, max:160, inv:false},
+  // Bobur — Telegram
+  {id:'s5', profile:'bobur', platform:'telegram',  metric:'subscribers',    label:'Obunachi soni',    min:1000,    plan:2000,    linked:100, max:150, inv:false},
+  {id:'s6', profile:'bobur', platform:'telegram',  metric:'pm_count',       label:'PM soni',          min:2000,    plan:3000,    linked:80,  max:120, inv:false},
+  {id:'s7', profile:'bobur', platform:'telegram',  metric:'reactions',      label:'Reaksiya',         min:50,      plan:100,     linked:50,  max:70,  inv:false},
+  {id:'s8', profile:'bobur', platform:'telegram',  metric:'leaves',         label:'Chiqib ketish ↓',  min:200,     plan:50,      linked:30,  max:50,  inv:true},
+  // Insan — Instagram
+  {id:'s9', profile:'insan', platform:'instagram', metric:'content_plan',   label:'Kontent plan %',   min:80,      plan:100,     linked:200, max:300, inv:false},
+]
+
+const AGREED = {
+  bobur: { instagram: 570, telegram: 260 },
+  insan: { instagram: 300 }
+}
+
+const PROFILES = {
+  bobur: 'Bobur Musaboyev',
+  insan: 'Insan'
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+let settings = STORE.getSettings() || DEFAULT_SETTINGS
+let editPostId = null
+let charts = {}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const now = new Date()
+  const ym = now.toISOString().slice(0,7)
+  document.getElementById('dash-month').value = ym
+  document.getElementById('fp-month').value = ym
+  document.getElementById('sb-date').textContent = now.toLocaleDateString('uz-UZ',{year:'numeric',month:'long'})
+  renderDash()
+})
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+function go(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'))
+  document.getElementById('page-'+name).classList.add('on')
+  const idx = {dash:0, posts:1, kpi:2}[name] ?? 0
+  document.querySelectorAll('.nav-btn')[idx].classList.add('on')
+  if(name==='posts') renderPosts()
+  if(name==='kpi') renderKpi()
+  if(name==='dash') renderDash()
+}
+
+// ════════════════════════════════════════════════
+// KPI CALCULATOR
+// ════════════════════════════════════════════════
+function calc(actual, s) {
+  const {min, plan, linked, max, inv} = s
+  if(inv) {
+    // Chiqib ketish: kam bo'lsa yaxshi
+    // min=200 (yomon chegara), plan=50 (maqsad)
+    if(actual > min) return {earned:0, pct:0, st:'r'}
+    if(actual <= plan) return {earned:max, pct:100, st:'b'}
+    const ratio = (min - actual) / (min - plan)
+    if(ratio <= 0.5) {
+      return {earned:+(linked * ratio * 2).toFixed(2), pct:+(ratio*100).toFixed(1), st:'y'}
+    } else {
+      const er = (ratio-0.5)*2
+      return {earned:+(linked + (max-linked)*er).toFixed(2), pct:+(ratio*100).toFixed(1), st:'g'}
+    }
+  }
+  if(actual < min) return {earned:0, pct:0, st:'r'}
+  const pct = plan > 0 ? actual/plan*100 : 0
+  if(actual < plan) {
+    const ratio = (actual-min)/(plan-min||1)
+    return {earned:+(linked*ratio).toFixed(2), pct:+pct.toFixed(1), st:'y'}
+  }
+  if(actual === plan) return {earned:linked, pct:100, st:'g'}
+  // above plan
+  const range = plan - min || 1
+  const extra = Math.min((actual-plan)/range, 1)
+  const earned = Math.min(linked + (max-linked)*extra, max)
+  return {earned:+earned.toFixed(2), pct:+pct.toFixed(1), st: earned>=max ? 'b' : 'g'}
+}
+
+const ST_CLS = {r:'mr', y:'my', g:'mg', b:'mb'}
+const PC_CLR = p => p>=100?'var(--blue)':p>=60?'var(--green)':p>=30?'var(--yellow)':'var(--red)'
+
+// ════════════════════════════════════════════════
+// AGGREGATE POSTS → METRICS
+// ════════════════════════════════════════════════
+function agg(posts, profile, platform) {
+  const pp = posts.filter(p => p.profile===profile && p.platform===platform)
+  if(!pp.length) return {}
+  const subs   = pp.reduce((s,p)=>s+(p.subs||0), 0)
+  const pm     = pp.reduce((s,p)=>s+(p.pm||0), 0)
+  const avgR   = pp.reduce((s,p)=>s+(p.react||0),0) / pp.length
+  const avgL   = pp.reduce((s,p)=>s+(p.leave||0),0) / pp.length
+  const sPosts = pp.filter(p=>p.type==='story')
+  const stAct  = sPosts.length ? sPosts.reduce((s,p)=>s+(p.views||0),0)/sPosts.length/100 : 0
+  const cp     = Math.min(pp.length/30*100, 100)
+  return {
+    subscribers: subs,
+    pm_count: pm,
+    story_activity: +stAct.toFixed(1),
+    content_plan: +cp.toFixed(1),
+    reactions: +avgR.toFixed(0),
+    leaves: +avgL.toFixed(0)
+  }
+}
+
+// ════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════
+function renderDash() {
+  const month = document.getElementById('dash-month').value
+  const posts = STORE.getPosts()
+  const mPosts = month ? posts.filter(p => p.date && p.date.startsWith(month)) : posts
+
+  const combos = [
+    {slug:'bobur', platform:'instagram'},
+    {slug:'bobur', platform:'telegram'},
+    {slug:'insan', platform:'instagram'}
+  ]
+
+  const summaries = combos.map(c => {
+    const setts = settings.filter(s => s.profile===c.slug && s.platform===c.platform)
+    const metrics = setts.map(s => {
+      const aggData = agg(mPosts, c.slug, c.platform)
+      const actual = aggData[s.metric] ?? 0
+      const res = calc(actual, s)
+      return {...s, actual, ...res}
+    })
+    const totalEarned = metrics.reduce((s,m)=>s+m.earned, 0)
+    const agreed = AGREED[c.slug]?.[c.platform] || 0
+    const achPct = agreed > 0 ? totalEarned/agreed*100 : 0
+    return {slug:c.slug, platform:c.platform, name:PROFILES[c.slug], metrics, totalEarned, agreed, achPct}
+  })
+
+  const grand = summaries.reduce((s,r)=>s+r.totalEarned, 0)
+  const grandAg = summaries.reduce((s,r)=>s+r.agreed, 0)
+  const grandAgMax = 1130 // absolute max with bonuses
+  const totalViews = mPosts.reduce((s,p)=>s+(p.views||0),0)
+  const totalSubs = mPosts.reduce((s,p)=>s+(p.subs||0),0)
+  const mlbl = month ? new Date(month+'-15').toLocaleDateString('uz-UZ',{year:'numeric',month:'long'}) : 'Barcha vaqt'
+
+  // Bobur/Insan earned
+  const bIG = summaries.find(s=>s.slug==='bobur'&&s.platform==='instagram')?.totalEarned || 0
+  const bTG = summaries.find(s=>s.slug==='bobur'&&s.platform==='telegram')?.totalEarned || 0
+  const iIG = summaries.find(s=>s.slug==='insan'&&s.platform==='instagram')?.totalEarned || 0
+
+  let h = `
+    <div class="tbar">
+      <div>
+        <div class="tbar-lbl">Bu oy olish kerak bo'lgan summa</div>
+        <div class="tbar-val tr-g">$${grand.toFixed(0)}</div>
+        <div class="tbar-meta">${mlbl} · Kelishilgan $${grandAg} (maks $${grandAgMax})</div>
+      </div>
+      <div style="text-align:right">
+        <div class="tbar-lbl">Bajarilish</div>
+        <div style="font-size:24px;font-weight:700;font-family:'DM Mono',monospace;color:${PC_CLR(grandAg>0?grand/grandAg*100:0)}">
+          ${grandAg>0?(grand/grandAg*100).toFixed(0):0}%
+        </div>
+      </div>
+    </div>
+    <div class="sg">
+      <div class="card">
+        <div class="card-lbl">Bobur · Instagram</div>
+        <div class="card-val" style="color:var(--pink)">$${bIG.toFixed(0)}</div>
+        <div class="card-sub">/ $${AGREED.bobur.instagram} kelishilgan</div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Bobur · Telegram</div>
+        <div class="card-val" style="color:var(--blue)">$${bTG.toFixed(0)}</div>
+        <div class="card-sub">/ $${AGREED.bobur.telegram} kelishilgan</div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Insan · Instagram</div>
+        <div class="card-val" style="color:var(--accent)">$${iIG.toFixed(0)}</div>
+        <div class="card-sub">/ $${AGREED.insan.instagram} kelishilgan</div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Jami prosmotrlar</div>
+        <div class="card-val">${fmtN(totalViews)}</div>
+        <div class="card-sub">${mPosts.length} ta post</div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Yangi obunachilar</div>
+        <div class="card-val">${fmtN(totalSubs)}</div>
+        <div class="card-sub">bu oy</div>
+      </div>
+    </div>
+    <div class="stitle">Profil bo'yicha KPI natijalari</div>
+    <div class="kpi-grid">
+  `
+
+  for(const s of summaries) {
+    const pp = s.platform === 'instagram' ? 'p-ig' : 'p-tg'
+    const pPct = Math.min(s.achPct, 100)
+    h += `
+      <div class="kc">
+        <div class="kc-head">
+          <div>
+            <div class="kc-name">${s.name}</div>
+            <div style="margin-top:4px"><span class="pb ${pp}">${s.platform==='instagram'?'📸 Instagram':'✈️ Telegram'}</span></div>
+          </div>
+          <div class="kc-earn">
+            <div class="kc-earn-v ${s.totalEarned>0?'tr-g':'tr-m'}">$${s.totalEarned.toFixed(0)}</div>
+            <div class="kc-earn-s">/ $${s.agreed}</div>
+          </div>
+        </div>
+        <div class="kc-prog">
+          <div class="kc-prog-lbl">
+            <span>Bajarilish</span>
+            <span style="color:${PC_CLR(s.achPct)}">${s.achPct.toFixed(0)}%</span>
+          </div>
+          <div class="pbar"><div class="pfill" style="width:${pPct}%;background:${PC_CLR(s.achPct)}"></div></div>
+        </div>
+        <div class="kc-rows">
+          ${s.metrics.map(m => `
+            <div class="kc-row">
+              <span class="kc-row-name">${m.label}</span>
+              <span class="kc-row-val">${fmtMetric(m.actual, m.metric)}</span>
+              <span class="mearn ${ST_CLS[m.st]}">$${m.earned.toFixed(0)}</span>
+            </div>
+          `).join('')}
+          ${s.metrics.length===0?'<div style="padding:12px 18px;color:var(--text3);font-size:12px">Post kiritilmagan</div>':''}
+        </div>
+      </div>
+    `
+  }
+
+  h += `</div>`
+
+  // Top posts
+  const top = [...mPosts].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,8)
+  if(top.length) {
+    h += `<div class="stitle" style="margin-top:4px">Eng ko'p ko'rilgan postlar</div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th>#</th><th>Profil</th><th>Platforma</th><th>Tur</th>
+        <th style="text-align:right">Prosmotr</th>
+        <th style="text-align:right">Obunachi</th>
+        <th>Sana</th>
+      </tr></thead><tbody>`
+    top.forEach((p,i)=>{
+      const pc = p.platform==='instagram'?'p-ig':'p-tg'
+      h += `<tr>
+        <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px">${i+1}</td>
+        <td class="tdm">${PROFILES[p.profile]||p.profile}</td>
+        <td><span class="pb ${pc}">${p.platform}</span></td>
+        <td style="color:var(--text3)">${p.type}</td>
+        <td class="tdn">${fmtN(p.views||0)}</td>
+        <td class="tdn">${fmtN(p.subs||0)}</td>
+        <td style="color:var(--text3);font-size:12px">${p.date?new Date(p.date).toLocaleDateString('uz-UZ'):''}</td>
+      </tr>`
+    })
+    h += `</tbody></table></div>`
+  }
+
+  // Monthly chart
+  h += buildMonthlyChart(posts)
+
+  document.getElementById('dash-body').innerHTML = h
+  renderMonthlyChart(posts)
+}
+
+function buildMonthlyChart(allPosts) {
+  return `
+    <div class="cw" style="margin-top:20px">
+      <div class="chead"><div class="ctitle">Oylik KPI natijalari ($)</div></div>
+      <div style="position:relative;height:220px"><canvas id="monthly-chart" role="img" aria-label="Oylik KPI grafigi"></canvas></div>
+    </div>
+  `
+}
+
+function renderMonthlyChart(allPosts) {
+  const canvas = document.getElementById('monthly-chart')
+  if(!canvas) return
+  if(charts.monthly) { charts.monthly.destroy(); charts.monthly = null }
+
+  const months = []
+  const now = new Date()
+  for(let i=5;i>=0;i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1)
+    months.push(d.toISOString().slice(0,7))
+  }
+
+  const labels = months.map(m => new Date(m+'-15').toLocaleDateString('uz-UZ',{month:'short',year:'2-digit'}))
+
+  const getMonthEarned = (month, slug, platform) => {
+    const mp = allPosts.filter(p => p.date && p.date.startsWith(month) && p.profile===slug && p.platform===platform)
+    const aggData = agg(mp, slug, platform)
+    const setts = settings.filter(s => s.profile===slug && s.platform===platform)
+    return setts.reduce((sum,s) => {
+      const actual = aggData[s.metric] ?? 0
+      return sum + calc(actual, s).earned
+    }, 0)
+  }
+
+  const d1 = months.map(m => getMonthEarned(m, 'bobur', 'instagram'))
+  const d2 = months.map(m => getMonthEarned(m, 'bobur', 'telegram'))
+  const d3 = months.map(m => getMonthEarned(m, 'insan', 'instagram'))
+
+  charts.monthly = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Bobur·IG', data:d1, backgroundColor:'rgba(255,110,181,.7)', borderRadius:4},
+        {label:'Bobur·TG', data:d2, backgroundColor:'rgba(61,168,255,.7)',  borderRadius:4},
+        {label:'Insan·IG', data:d3, backgroundColor:'rgba(124,111,255,.7)', borderRadius:4},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {callbacks:{label: ctx => ` $${ctx.raw.toFixed(0)}`}}
+      },
+      scales: {
+        x: {
+          stacked:true,
+          ticks:{color:'#50507a',font:{size:11}},
+          grid:{color:'rgba(255,255,255,.04)'}
+        },
+        y: {
+          stacked:true,
+          ticks:{color:'#50507a',font:{size:11}, callback:v=>'$'+v},
+          grid:{color:'rgba(255,255,255,.04)'}
+        }
+      }
+    }
+  })
+}
+
+// ════════════════════════════════════════════════
+// POSTS PAGE
+// ════════════════════════════════════════════════
+function renderPosts() {
+  const profile  = document.getElementById('fp-profile').value
+  const platform = document.getElementById('fp-platform').value
+  const month    = document.getElementById('fp-month').value
+  let posts = STORE.getPosts()
+  if(profile)  posts = posts.filter(p => p.profile===profile)
+  if(platform) posts = posts.filter(p => p.platform===platform)
+  if(month)    posts = posts.filter(p => p.date && p.date.startsWith(month))
+  posts = posts.sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1)
+
+  document.getElementById('posts-lbl').textContent = `${posts.length} ta yozuv`
+
+  if(!posts.length) {
+    document.getElementById('posts-body').innerHTML = `<div class="empty"><div class="empty-i">📭</div><div>Post topilmadi. "+" tugmasini bosib qo'shing.</div></div>`
+    return
+  }
+
+  let h = `<div class="tw"><table>
+    <thead><tr>
+      <th>Profil</th><th>Platforma</th><th>Sana</th><th>Tur</th>
+      <th style="text-align:right">Prosmotr</th>
+      <th style="text-align:right">Obunachi</th>
+      <th style="text-align:right">PM</th>
+      <th style="text-align:right">Reaksiya</th>
+      <th style="text-align:right">Chiqish</th>
+      <th>Amal</th>
+    </tr></thead><tbody>`
+
+  posts.forEach(p => {
+    const pc = p.platform==='instagram'?'p-ig':'p-tg'
+    h += `<tr>
+      <td class="tdm">${PROFILES[p.profile]||p.profile}</td>
+      <td><span class="pb ${pc}">${p.platform}</span></td>
+      <td style="font-size:12px;color:var(--text3)">${p.date?new Date(p.date).toLocaleDateString('uz-UZ'):''}</td>
+      <td style="color:var(--text2)">${p.type}</td>
+      <td class="tdn">${fmtN(p.views||0)}</td>
+      <td class="tdn">${fmtN(p.subs||0)}</td>
+      <td class="tdn">${fmtN(p.pm||0)}</td>
+      <td class="tdn">${fmtN(p.react||0)}</td>
+      <td class="tdn">${fmtN(p.leave||0)}</td>
+      <td>
+        <div class="tda">
+          ${p.link?`<a href="${p.link}" target="_blank" class="btn btn-g btn-s">↗</a>`:''}
+          <button class="btn btn-g btn-s" onclick='editPost(${JSON.stringify(p).replace(/'/g,"&#39;")})'>✏</button>
+          <button class="btn btn-d btn-s" onclick="delPost('${p.id}')">✕</button>
+        </div>
+      </td>
+    </tr>`
+  })
+
+  h += `</tbody></table></div>`
+  document.getElementById('posts-body').innerHTML = h
+}
+
+function openPost(post=null) {
+  editPostId = post?.id || null
+  document.getElementById('pm-title').textContent = post ? 'Postni tahrirlash' : "Post qo'shish"
+  document.getElementById('f-profile').value  = post?.profile  || 'bobur'
+  document.getElementById('f-platform').value = post?.platform || 'instagram'
+  document.getElementById('f-date').value     = post?.date     || new Date().toISOString().slice(0,10)
+  document.getElementById('f-type').value     = post?.type     || 'post'
+  document.getElementById('f-link').value     = post?.link     || ''
+  document.getElementById('f-views').value    = post?.views    || 0
+  document.getElementById('f-subs').value     = post?.subs     || 0
+  document.getElementById('f-pm').value       = post?.pm       || 0
+  document.getElementById('f-react').value    = post?.react    || 0
+  document.getElementById('f-leave').value    = post?.leave    || 0
+  document.getElementById('f-notes').value    = post?.notes    || ''
+  document.getElementById('post-modal').classList.add('on')
+}
+
+function editPost(post) { openPost(post) }
+
+function closePost() {
+  document.getElementById('post-modal').classList.remove('on')
+  editPostId = null
+}
+
+function savePost() {
+  const btn = document.getElementById('pm-save')
+  btn.textContent = 'Saqlanmoqda...'
+  btn.disabled = true
+
+  const data = {
+    id:       editPostId || Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    profile:  document.getElementById('f-profile').value,
+    platform: document.getElementById('f-platform').value,
+    date:     document.getElementById('f-date').value,
+    type:     document.getElementById('f-type').value,
+    link:     document.getElementById('f-link').value || null,
+    views:    parseInt(document.getElementById('f-views').value)||0,
+    subs:     parseInt(document.getElementById('f-subs').value)||0,
+    pm:       parseInt(document.getElementById('f-pm').value)||0,
+    react:    parseInt(document.getElementById('f-react').value)||0,
+    leave:    parseInt(document.getElementById('f-leave').value)||0,
+    notes:    document.getElementById('f-notes').value||null
+  }
+
+  let posts = STORE.getPosts()
+  if(editPostId) {
+    posts = posts.map(p => p.id===editPostId ? data : p)
+  } else {
+    posts.push(data)
+  }
+  STORE.setPosts(posts)
+
+  setTimeout(() => {
+    btn.textContent = 'Saqlash'
+    btn.disabled = false
+    closePost()
+    renderPosts()
+    toast(editPostId ? 'Post yangilandi ✓' : "Post qo'shildi ✓", 's')
+  }, 150)
+}
+
+function delPost(id) {
+  if(!confirm("Bu postni o'chirishni tasdiqlaysizmi?")) return
+  let posts = STORE.getPosts()
+  STORE.setPosts(posts.filter(p => p.id!==id))
+  renderPosts()
+  toast("Post o'chirildi", 's')
+}
+
+document.getElementById('post-modal').addEventListener('click', e => {
+  if(e.target===document.getElementById('post-modal')) closePost()
+})
+
+// ════════════════════════════════════════════════
+// KPI SETTINGS
+// ════════════════════════════════════════════════
+function renderKpi() {
+  const combos = [
+    {slug:'bobur', platform:'instagram', label:'Bobur Musaboyev — Instagram', agreed:570},
+    {slug:'bobur', platform:'telegram',  label:'Bobur Musaboyev — Telegram',  agreed:260},
+    {slug:'insan', platform:'instagram', label:'Insan — Instagram',            agreed:300},
+  ]
+
+  let h = ''
+  for(const c of combos) {
+    const grp = settings.filter(s => s.profile===c.slug && s.platform===c.platform)
+    const pc = c.platform==='instagram' ? 'p-ig' : 'p-tg'
+    h += `
+      <div class="sgrp">
+        <div class="sgrp-head">
+          <div>
+            <div class="sgrp-title">${c.label}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Kelishilgan summa: <strong style="color:var(--text)">$${c.agreed}</strong></div>
+          </div>
+          <span class="pb ${pc}">${c.platform}</span>
+        </div>
+        <div class="sth">
+          <div class="sth-c">Ko'rsatkich</div>
+          <div class="sth-c">Minimalka</div>
+          <div class="sth-c">Plan</div>
+          <div class="sth-c">Bog'langan $</div>
+          <div class="sth-c">Maks $</div>
+          <div class="sth-c">Amal</div>
+        </div>
+    `
+    grp.forEach(s => {
+      h += `
+        <div class="srow" id="sr-${s.id}">
+          <div class="sc" style="color:var(--text);font-weight:500">
+            ${s.label}
+            ${s.inv?'<span style="font-size:10px;background:var(--ybg);color:var(--yellow);padding:1px 5px;border-radius:4px;margin-left:4px">↓teskari</span>':''}
+          </div>
+          <div class="sc">
+            <span class="sv-min" data-id="${s.id}">${fmtN(s.min)}</span>
+            <input class="si-min" data-id="${s.id}" type="number" value="${s.min}" style="display:none">
+          </div>
+          <div class="sc">
+            <span class="sv-plan" data-id="${s.id}">${fmtN(s.plan)}</span>
+            <input class="si-plan" data-id="${s.id}" type="number" value="${s.plan}" style="display:none">
+          </div>
+          <div class="sc" style="color:var(--green);font-weight:500">
+            <span class="sv-linked" data-id="${s.id}">$${s.linked}</span>
+            <input class="si-linked" data-id="${s.id}" type="number" step="0.01" value="${s.linked}" style="display:none">
+          </div>
+          <div class="sc" style="color:var(--blue);font-weight:500">
+            <span class="sv-max" data-id="${s.id}">$${s.max}</span>
+            <input class="si-max" data-id="${s.id}" type="number" step="0.01" value="${s.max}" style="display:none">
+          </div>
+          <div class="sc">
+            <button class="btn btn-g btn-s sedit" data-id="${s.id}" onclick="toggleEdit('${s.id}')">✏</button>
+            <button class="sinline" id="ssave-${s.id}" onclick="saveSetting('${s.id}')">Saqlash</button>
+          </div>
+        </div>
+      `
+    })
+    h += `</div>`
+  }
+
+  h += `
+    <div class="card" style="margin-top:8px">
+      <div class="card-lbl">Ma'lumotlarni eksport / import</div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-g" onclick="exportData()">⬇ Ma'lumotlarni yuklab olish (JSON)</button>
+        <label class="btn btn-g" style="cursor:pointer">
+          ⬆ JSON yuklash
+          <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+        </label>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:10px">
+        Barcha postlar va sozlamalar brauzer xotirasida saqlanadi. Boshqa qurilmada ishlatish uchun eksport qiling.
+      </div>
+    </div>
+  `
+
+  document.getElementById('kpi-body').innerHTML = h
+}
+
+function toggleEdit(id) {
+  const row = document.getElementById('sr-'+id)
+  const open = row.querySelector('.si-min').style.display !== 'none'
+  if(open) {
+    row.querySelectorAll('[class^="si-"]').forEach(i=>i.style.display='none')
+    row.querySelectorAll('[class^="sv-"]').forEach(s=>s.style.display='')
+    row.querySelector('.sedit').textContent='✏'
+    document.getElementById('ssave-'+id).style.display='none'
+  } else {
+    row.querySelectorAll('[class^="si-"]').forEach(i=>i.style.display='')
+    row.querySelectorAll('[class^="sv-"]').forEach(s=>s.style.display='none')
+    row.querySelector('.sedit').textContent='✕'
+    document.getElementById('ssave-'+id).style.display='inline-block'
+  }
+}
+
+function saveSetting(id) {
+  const row = document.getElementById('sr-'+id)
+  const newMin    = parseFloat(row.querySelector('.si-min').value)
+  const newPlan   = parseFloat(row.querySelector('.si-plan').value)
+  const newLinked = parseFloat(row.querySelector('.si-linked').value)
+  const newMax    = parseFloat(row.querySelector('.si-max').value)
+
+  settings = settings.map(s => s.id===id ? {...s, min:newMin, plan:newPlan, linked:newLinked, max:newMax} : s)
+  STORE.setSettings(settings)
+
+  // Update display
+  row.querySelector('.sv-min').textContent    = fmtN(newMin)
+  row.querySelector('.sv-plan').textContent   = fmtN(newPlan)
+  row.querySelector('.sv-linked').textContent = '$'+newLinked
+  row.querySelector('.sv-max').textContent    = '$'+newMax
+  toggleEdit(id)
+  toast('Saqlandi ✓', 's')
+}
+
+// ════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════════════
+function exportData() {
+  const d = {
+    posts: STORE.getPosts(),
+    settings,
+    exported: new Date().toISOString()
+  }
+  const blob = new Blob([JSON.stringify(d, null, 2)], {type:'application/json'})
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `kpi-backup-${new Date().toISOString().slice(0,10)}.json`
+  a.click()
+  toast("Ma'lumotlar yuklab olindi ✓", 's')
+}
+
+function importData(e) {
+  const file = e.target.files[0]
+  if(!file) return
+  const reader = new FileReader()
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result)
+      if(d.posts) STORE.setPosts(d.posts)
+      if(d.settings) { settings = d.settings; STORE.setSettings(d.settings) }
+      toast("Ma'lumotlar yuklandi ✓", 's')
+      renderKpi()
+      renderDash()
+    } catch(err) {
+      toast('Xato: noto\'g\'ri fayl formati', 'e')
+    }
+  }
+  reader.readAsText(file)
+  e.target.value = ''
+}
+
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
+function fmtN(n) {
+  n = n || 0
+  if(n >= 1000000) return (n/1000000).toFixed(1)+'M'
+  if(n >= 1000)    return (n/1000).toFixed(0)+'K'
+  return n.toString()
+}
+
+function fmtMetric(val, metric) {
+  if(metric==='story_activity'||metric==='content_plan') return val+'%'
+  return fmtN(val)
+}
+
+let _toastTimer
+function toast(msg, type='s') {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = 'on '+type
+  clearTimeout(_toastTimer)
+  _toastTimer = setTimeout(() => t.className='', 3000)
+}
+</script>
+</body>
+</html>
